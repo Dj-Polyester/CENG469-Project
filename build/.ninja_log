@@ -1,0 +1,6 @@
+# ninja log v5
+0	584	1652715328290199892	CMakeFiles/testProj.dir/src/types.cpp.o	51d5ffbebdc71c7f
+0	627	1652715328333533225	CMakeFiles/testProj.dir/src/main.cpp.o	892c7604df5e62a
+0	588	1652715355283533350	CMakeFiles/testProj.dir/src/types.cpp.o	afe686c2edcf8f4
+0	620	1652715355316866684	CMakeFiles/testProj.dir/src/main.cpp.o	ae0ac03a4b4fe37a
+620	686	1652715355380200017	testProj	c15302b216c28b64

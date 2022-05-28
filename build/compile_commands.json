@@ -1,0 +1,12 @@
+[
+{
+  "directory": "/home/polyester/Desktop/Programming/vulkan/build",
+  "command": "/usr/bin/g++ -DLITTLEBUG -I/home/polyester/Desktop/Programming/vulkan/include -g -o CMakeFiles/testProj.dir/src/main.cpp.o -c /home/polyester/Desktop/Programming/vulkan/src/main.cpp",
+  "file": "/home/polyester/Desktop/Programming/vulkan/src/main.cpp"
+},
+{
+  "directory": "/home/polyester/Desktop/Programming/vulkan/build",
+  "command": "/usr/bin/g++ -DLITTLEBUG -I/home/polyester/Desktop/Programming/vulkan/include -g -o CMakeFiles/testProj.dir/src/types.cpp.o -c /home/polyester/Desktop/Programming/vulkan/src/types.cpp",
+  "file": "/home/polyester/Desktop/Programming/vulkan/src/types.cpp"
+}
+]
