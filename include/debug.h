@@ -5,7 +5,12 @@
 
 namespace debug
 {
-#ifdef LITTLEBUG
+#ifdef VALIDATION_ENABLED
+#define BLUE "\033[1;36m"
+#define RED "\033[1;31m"
+#define PRINT(stream, color, var) stream << "\033[1;37m" << __FILE__ << ":" << __LINE__ << ": " << color << var << "\033[0m " << std::endl
+#define PRINT2(stream, color, label, var) stream << "\033[1;37m" << __FILE__ << ":" << __LINE__ << ": " << color << label << ":\033[0m " << var << std::endl
+
     const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 #ifdef VERBOSE_ENABLED
     bool verbose_enabled = true;
@@ -19,8 +24,9 @@ namespace debug
 #endif
 
 #if defined(VERBOSE_ENABLED) || defined(INFO_ENABLED)
-#define DEBUG(var) std::cerr << "\033[1;37m" << __FILE__ << ":" << __LINE__ << "\033[1;36m " << var << "\033[0m " << std::endl
-#define DEBUG2(label, var) std::cerr << "\033[1;37m" << __FILE__ << ":" << __LINE__ << ": \033[1;36m" << label << ":\033[0m " << var << std::endl
+
+#define DEBUG(var) PRINT(std::cerr, BLUE, var)
+#define DEBUG2(label, var) PRINT2(std::cerr, BLUE, label, var)
 #define DEBUG3(var) DEBUG2(#var, var)
 #else
 #define DEBUG(var)
@@ -28,19 +34,21 @@ namespace debug
 #define DEBUG3(var)
 #endif
 
-#define ERROR(var)                                                                                             \
-    {                                                                                                          \
-        std::stringstream ss;                                                                                  \
-        ss << "\033[1;37m" << __FILE__ << ":" << __LINE__ << ": \033[1;31merror:\033[0m " << var << std::endl; \
-        throw std::runtime_error(ss.str());                                                                    \
+#define ERROR(var)                          \
+    {                                       \
+        std::stringstream ss;               \
+        PRINT(ss, RED, var);                \
+        throw std::runtime_error(ss.str()); \
     }
-#define ERROR2(label, var)                                                                                                      \
-    {                                                                                                                           \
-        std::stringstream ss;                                                                                                   \
-        ss << "\033[1;37m" << __FILE__ << ":" << __LINE__ << ": \033[1;31merror:" << label << ": \033[0m " << var << std::endl; \
-        throw std::runtime_error(ss.str());                                                                                     \
+#define ERROR2(label, var)                  \
+    {                                       \
+        std::stringstream ss;               \
+        PRINT2(ss, RED, label, var);        \
+        throw std::runtime_error(ss.str()); \
     }
-#define ERROR3(var) ERROR2(#var, var)
+#define CERROR(var) PRINT(std::cerr, RED, var)
+#define CERROR2(label, var) PRINT2(std::cerr, RED, label, var)
+#define CERROR3(var) CERROR2(#var, var)
 #define debugVkResult(result)                        \
     {                                                \
         std::string resultStr = getVkResult(result); \
@@ -91,7 +99,7 @@ namespace debug
         DEBUG2("Required extensions glfw (glfwExtCount)", glfwExtCount); \
         if (glfwExtCount == UINT32_MAX)                                  \
         {                                                                \
-            ERROR("extglfwExtCountCount is UINT32_MAX");                 \
+            ERROR("glfwExtCount is UINT32_MAX");                         \
         }                                                                \
         for (size_t i = 0; i < glfwExtCount; ++i)                        \
         {                                                                \
@@ -112,10 +120,6 @@ namespace debug
         }                                                          \
     }
 
-#define debugpCallbackData(pCallbackData) \
-    DEBUG3(pCallbackData->pMessage);      \
-    debugVkpObjects(pCallbackData->pObjects, pCallbackData->objectCount)
-
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -124,44 +128,38 @@ namespace debug
     {
 
         DEBUG2("messageSeverity", getMessageSeverity(messageSeverity));
-        debugpCallbackData(pCallbackData);
-
+        DEBUG2("messageType", getMessageType(messageType));
+        // debugVkpObjects(pCallbackData->pObjects, pCallbackData->objectCount);
         if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
-            ERROR2("messageType", getMessageType(messageType));
+            CERROR3(pCallbackData->pMessage);
+            return VK_FALSE;
         }
-        if (verbose_enabled || info_enabled)
-            DEBUG2("messageType", getMessageType(messageType));
+        DEBUG3(pCallbackData->pMessage);
         return VK_FALSE;
     }
 
-#define layerSupport(layerProps)                                       \
-    {                                                                  \
-        for (const char *layerName : debug::validationLayers)          \
-        {                                                              \
-            bool layerFound = false;                                   \
-            for (const auto &layerProperties : layerProps)             \
-            {                                                          \
-                if (strcmp(layerName, layerProperties.layerName) == 0) \
-                {                                                      \
-                    layerFound = true;                                 \
-                    break;                                             \
-                }                                                      \
-            }                                                          \
-            if (!layerFound)                                           \
-            {                                                          \
-                ERROR2(layerName, "Layer not found");                  \
-            }                                                          \
-        }                                                              \
+#define debugLayerSupport(layerProps)                            \
+    {                                                            \
+        for (const char *layerName : debug::validationLayers)    \
+        {                                                        \
+            bool layerFound = false;                             \
+            for (const auto &layerProp : layerProps)             \
+            {                                                    \
+                if (strcmp(layerName, layerProp.layerName) == 0) \
+                {                                                \
+                    layerFound = true;                           \
+                    break;                                       \
+                }                                                \
+            }                                                    \
+            if (!layerFound)                                     \
+            {                                                    \
+                ERROR2(layerName, "Layer not found");            \
+            }                                                    \
+        }                                                        \
     }
 
-#define glfwRequireVal(glfwExtensions, glfwExtCount)                 \
-    {                                                                \
-        glfwExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME); \
-        ++glfwExtCount;                                              \
-    }
-
-#define createInfoLayerSet(createInfo)                                                        \
+#define enableValLayer(createInfo)                                                            \
     {                                                                                         \
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};                                 \
         createInfo.enabledLayerCount = static_cast<uint32_t>(debug::validationLayers.size()); \
@@ -172,14 +170,14 @@ namespace debug
 
     VkResult createDebugUtilsMessengerEXT(
         VkInstance instance,
-        const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+        const VkDebugUtilsMessengerCreateInfoEXT *pDebugCreateInfo,
         const VkAllocationCallbacks *pAllocator,
         VkDebugUtilsMessengerEXT *pDebugMessenger)
     {
         auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
         if (func != nullptr)
         {
-            return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+            return func(instance, pDebugCreateInfo, pAllocator, pDebugMessenger);
         }
         else
         {
@@ -199,33 +197,33 @@ namespace debug
         }
     }
 
-    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
+    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &debugCreateInfo)
     {
-        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         if (debug::verbose_enabled)
-            createInfo.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+            debugCreateInfo.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
         if (debug::info_enabled)
-            createInfo.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+            debugCreateInfo.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
 
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = debug::debugCallback;
-        createInfo.pUserData = nullptr;
+        debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        debugCreateInfo.pfnUserCallback = debug::debugCallback;
+        debugCreateInfo.pUserData = nullptr;
     }
 
-#define setupDebugMessenger(instance, debugMessenger)          \
-    {                                                          \
-        VkDebugUtilsMessengerCreateInfoEXT createInfo{};       \
-        debug::populateDebugMessengerCreateInfo(createInfo);   \
-        VkResult result = debug::createDebugUtilsMessengerEXT( \
-            instance,                                          \
-            &createInfo,                                       \
-            nullptr,                                           \
-            &debugMessenger);                                  \
-        debugVkResult(result);                                 \
+#define setupDebugMessenger(instance, debugMessenger)             \
+    {                                                             \
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};     \
+        debug::populateDebugMessengerCreateInfo(debugCreateInfo); \
+        VkResult result = debug::createDebugUtilsMessengerEXT(    \
+            instance,                                             \
+            &debugCreateInfo,                                     \
+            nullptr,                                              \
+            &debugMessenger);                                     \
+        debugVkResult(result);                                    \
     }
 #define destroyDebugMessenger(instance, debugMessenger) debug::destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr)
-
+#define glfwRequireDebugUtils() glfwRequire(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
 #else
 
 #define DEBUG(var)
@@ -240,15 +238,14 @@ namespace debug
 #define debugVkLayers(layerProps, layerCount)
 #define debugVkExtensions(extProps, extCount)
 #define debugGlfwExtensions(glfwExtensions, glfwExtCount)
-#define layerSupport(layerProps)
-#define glfwRequireVal(glfwExtensions, glfwExtCount)
-#define createInfoLayerSet(createInfo)    \
+#define debugLayerSupport(layerProps)
+#define enableValLayer(createInfo)        \
     {                                     \
         createInfo.enabledLayerCount = 0; \
         createInfo.pNext = nullptr;       \
     }
 #define setupDebugMessenger(instance, debugMessenger)
 #define destroyDebugMessenger(instance, debugMessenger)
-
+#define glfwRequireDebugUtils()
 #endif
 }
