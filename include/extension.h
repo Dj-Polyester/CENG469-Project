@@ -17,29 +17,26 @@ struct Extension
     VkResult result;
     Extension()
     {
-        if (extCount == UINT32_MAX)
-        {
-            vkEnumerateInstanceExtensionProperties(nullptr, &extCount, nullptr);
-            extProps.resize(extCount);
-            result = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, extProps.data());
-            debugVkResult(result);
-        }
-        debugVkExtensions(extProps, extCount);
-        if (layerCount == UINT32_MAX)
-        {
-            vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-            layerProps.resize(layerCount);
-            result = vkEnumerateInstanceLayerProperties(&layerCount, layerProps.data());
-            debugVkResult(result);
-        }
-        debugVkLayers(layerProps, layerCount);
-        if (glfwExtCount == UINT32_MAX)
-        {
-            const char **glfwExts = glfwGetRequiredInstanceExtensions(&glfwExtCount);
-            glfwExtensions.insert(glfwExtensions.begin(), glfwExts, glfwExts + glfwExtCount);
 
-            glfwRequireDebugUtils();
-        }
+        vkEnumerateInstanceExtensionProperties(nullptr, &extCount, nullptr);
+        extProps.resize(extCount);
+        result = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, extProps.data());
+        debugVkResult(result);
+
+        debugVkExtensions(extProps, extCount);
+
+        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+        layerProps.resize(layerCount);
+        result = vkEnumerateInstanceLayerProperties(&layerCount, layerProps.data());
+        debugVkResult(result);
+
+        debugVkLayers(layerProps, layerCount);
+
+        const char **glfwExts = glfwGetRequiredInstanceExtensions(&glfwExtCount);
+        glfwExtensions.insert(glfwExtensions.begin(), glfwExts, glfwExts + glfwExtCount);
+
+        glfwRequireDebugUtils();
+
         debugGlfwExtensions(glfwExtensions, glfwExtCount);
     }
 

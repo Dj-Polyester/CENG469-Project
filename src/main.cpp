@@ -1,4 +1,3 @@
-#define VERBOSE_ENABLED
 #include "window.h"
 #include "instance.h"
 int main()
@@ -7,7 +6,6 @@ int main()
     {
         // Use when using GLFW
         glfwInit();
-
 
         Window win(800, 600, "vulcano");
         Extension ext;

@@ -27,7 +27,7 @@ if (WIN32)
 
 
 else()
-    find_library(glfw NAMES glfw3 libglfw3 REQUIRED)
+    find_library(glfw NAMES glfw3 libglfw3)
     find_package(Vulkan REQUIRED)
     target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PRIVATE ${Vulkan_INCLUDE_DIR})
