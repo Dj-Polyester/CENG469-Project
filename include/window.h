@@ -77,6 +77,7 @@ struct Window
         createInfo.enabledExtensionCount = static_cast<uint32_t>(ext::glfwExtensions.size());
         createInfo.ppEnabledExtensionNames = ext::glfwExtensions.data();
 
+        std::cout << ext::glfwExtensions[0];
         createInfoLayerSet(createInfo);
 
         result = vkCreateInstance(&createInfo, nullptr, &instance);

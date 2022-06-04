@@ -1,3 +1,4 @@
+#define VERBOSE_ENABLED
 #include "window.h"
 
 int main()
@@ -6,6 +7,7 @@ int main()
     {
         // Use when using GLFW
         glfwInit();
+
 
         Window win(800, 600, "vulcano");
         win.run();

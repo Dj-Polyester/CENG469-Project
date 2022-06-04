@@ -104,8 +104,9 @@ namespace debug
         DEBUG2("pObjects objectCount (objectCount)", objectCount); \
         for (size_t i = 0; i < objectCount; ++i)                   \
         {                                                          \
-            DEBUG(i);                                              \
-            DEBUG2("pObjectName", pObjects[i].pObjectName);        \
+            DEBUG(i);                                               \
+            if(pObjects[i].pObjectName)                             \
+                DEBUG2("pObjectName", pObjects[i].pObjectName);        \
             DEBUG2("sType", getStructureType(pObjects[i].sType));  \
             DEBUG2("objectType", pObjects[i].objectType);          \
             DEBUG2("objectHandle", pObjects[i].objectHandle);      \
@@ -128,7 +129,12 @@ namespace debug
 
         if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
+            //std::cout << getMessageType(messageType) << std::endl;
+
             ERROR2("messageType", getMessageType(messageType));
+
+            //ERROR2("messageType", getMessageType(messageType));
+
         }
         if (verbose_enabled || info_enabled)
             DEBUG2("messageType", getMessageType(messageType));
