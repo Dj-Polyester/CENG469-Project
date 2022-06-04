@@ -1,6 +1,6 @@
 #define VERBOSE_ENABLED
 #include "window.h"
-
+#include "instance.h"
 int main()
 {
     try
@@ -10,6 +10,8 @@ int main()
 
 
         Window win(800, 600, "vulcano");
+        Extension ext;
+        Instance instance(win.name, ext);
         win.run();
         glfwTerminate();
     }
