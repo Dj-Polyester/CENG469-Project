@@ -7,6 +7,8 @@ add_compile_definitions(VERBOSE_ENABLED)
 #add_compile_definitions(INFO_ENABLED)
 
 include_directories(include)
+set (CMAKE_CXX_STANDARD 20)
+
 file(GLOB_RECURSE SRC_FILES src/*)
 file(GLOB_RECURSE HEADERS include/*)
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${HEADERS})
@@ -23,7 +25,7 @@ if (WIN32)
     target_link_libraries(${PROJECT_NAME} ${GLFW})
     find_package(Vulkan REQUIRED)
     target_link_libraries(${PROJECT_NAME} ${Vulkan_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} PRIVATE ${Vulkan_INCLUDE_DIR})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIR})
 
 
 else()
