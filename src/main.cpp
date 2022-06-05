@@ -1,5 +1,6 @@
 #include "window.h"
 #include "instance.h"
+#include "physical_device.h"
 int main()
 {
     try
@@ -10,6 +11,8 @@ int main()
         Window win(800, 600, "vulcano");
         Extension ext;
         Instance instance(win.name, ext);
+        PhysicalDeviceManager pdevman(instance);
+        pdevman.pickBestScore();
         win.run();
         glfwTerminate();
     }

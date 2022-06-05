@@ -4,45 +4,98 @@
 struct Extension
 {
     // available extensions
-    std::vector<VkExtensionProperties> extProps;
+    std::vector<VkExtensionProperties> exts;
     // number of available extensions
-    uint32_t extCount = UINT32_MAX;
-    // layer vars
-    std::vector<VkLayerProperties> layerProps;
-    uint32_t layerCount = UINT32_MAX;
-    // glfw vars
-    uint32_t glfwExtCount = UINT32_MAX;
-    std::vector<const char *> glfwExtensions;
-    // other
-    VkResult result;
+    uint32_t extCount = 0;
+    // available layers
+    std::vector<VkLayerProperties> layers;
+    // number of available layers
+    uint32_t layerCount = 0;
+    // required extensions by glfw
+    std::vector<const char *> glfwExts;
+    // number of required extensions by glfw
+    uint32_t glfwExtCount = 0;
+    // result variable
+    VkResult result = VK_SUCCESS;
+    Extension(const Extension &ext)
+    {
+        this->extCount = ext.extCount;
+        this->layerCount = ext.layerCount;
+        this->glfwExtCount = ext.glfwExtCount;
+
+        this->exts = ext.exts;
+        this->layers = ext.layers;
+        this->glfwExts = ext.glfwExts;
+    }
     Extension()
     {
 
         vkEnumerateInstanceExtensionProperties(nullptr, &extCount, nullptr);
-        extProps.resize(extCount);
-        result = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, extProps.data());
+        exts.resize(extCount);
+        result = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, exts.data());
         debugVkResult(result);
 
-        debugVkExtensions(extProps, extCount);
+        debugVkExtensions((*this));
 
         vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-        layerProps.resize(layerCount);
-        result = vkEnumerateInstanceLayerProperties(&layerCount, layerProps.data());
+        layers.resize(layerCount);
+        result = vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
         debugVkResult(result);
 
-        debugVkLayers(layerProps, layerCount);
+        debugVkExtensions((*this));
 
-        const char **glfwExts = glfwGetRequiredInstanceExtensions(&glfwExtCount);
-        glfwExtensions.insert(glfwExtensions.begin(), glfwExts, glfwExts + glfwExtCount);
+        const char **glfwExts_tmp = glfwGetRequiredInstanceExtensions(&glfwExtCount);
+        glfwExts.insert(glfwExts.begin(), glfwExts_tmp, glfwExts_tmp + glfwExtCount);
 
         glfwRequireDebugUtils();
 
-        debugGlfwExtensions(glfwExtensions, glfwExtCount);
+        debugVkExtensions((*this));
     }
 
-    void glfwRequire(const char *extName)
+    void glfwRequireExt(const char *extName)
     {
-        glfwExtensions.push_back(extName);
+        glfwExts.push_back(extName);
         ++glfwExtCount;
+    }
+    void glfwRequireExts(std::vector<const char *> extNames)
+    {
+        glfwExts.insert(glfwExts.end(), extNames.begin(), extNames.end());
+        glfwExtCount += extNames.size();
+    }
+    void glfwRequireExts(std::vector<const char *> &extNames)
+    {
+        glfwExts.insert(glfwExts.end(), extNames.begin(), extNames.end());
+        glfwExtCount += extNames.size();
+    }
+
+    void queryLayers()
+    {
+        DEBUG2("Available layers (layerCount)", layerCount);
+        for (size_t i = 0; i < layerCount; ++i)
+        {
+            DEBUG(i);
+            DEBUG2("layerName", layers[i].layerName);
+            DEBUG2("specVersion", layers[i].specVersion);
+            DEBUG2("implementationVersion", layers[i].implementationVersion);
+            DEBUG2("description", layers[i].description);
+        }
+    }
+    void queryExtensions()
+    {
+        DEBUG2("Available extensions (extCount):", extCount);
+        for (size_t i = 0; i < extCount; ++i)
+        {
+            DEBUG(i);
+            DEBUG2("extensionName", exts[i].extensionName);
+            DEBUG2("specVersion", exts[i].specVersion);
+        }
+    }
+    void queryGlfwExtensions()
+    {
+        DEBUG2("Required extensions glfw (glfwExtCount)", glfwExtCount);
+        for (size_t i = 0; i < glfwExtCount; ++i)
+        {
+            DEBUG2(i, glfwExts[i]);
+        }
     }
 };

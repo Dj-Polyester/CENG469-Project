@@ -9,10 +9,11 @@ struct Instance
     VkInstance instance;
     VkResult result;
     VkDebugUtilsMessengerEXT debugMessenger;
-
-    Instance(std::string appname, Extension &ext)
+    Extension ext;
+    Instance(std::string appname, Extension &_ext)
     {
-        debugLayerSupport(ext.layerProps);
+        ext = _ext;
+        debugLayerSupport(ext.layers);
 
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -27,8 +28,8 @@ struct Instance
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
 
-        createInfo.enabledExtensionCount = static_cast<uint32_t>(ext.glfwExtensions.size());
-        createInfo.ppEnabledExtensionNames = ext.glfwExtensions.data();
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(ext.glfwExts.size());
+        createInfo.ppEnabledExtensionNames = ext.glfwExts.data();
 
         enableValLayer(createInfo);
 

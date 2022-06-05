@@ -1,6 +1,6 @@
 #include "types.h"
 
-std::string getMessageType(VkDebugUtilsMessageTypeFlagsEXT messageType)
+std::string getDebugUtilsMessageType(VkDebugUtilsMessageTypeFlagsEXT messageType)
 {
     switch (messageType)
     {
@@ -15,7 +15,7 @@ std::string getMessageType(VkDebugUtilsMessageTypeFlagsEXT messageType)
     }
 }
 
-std::string getMessageSeverity(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
+std::string getDebugUtilsMessageSeverity(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
 {
     switch (messageSeverity)
     {
@@ -140,7 +140,7 @@ std::string getVkResult(VkResult result)
     }
 }
 
-std::string getStructureType(VkStructureType stype)
+std::string getVkStructureType(VkStructureType stype)
 {
     switch (stype)
     {
@@ -1193,5 +1193,26 @@ std::string getStructureType(VkStructureType stype)
         return "VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINEAR_COLOR_ATTACHMENT_FEATURES_NV";
     default:
         return std::to_string(stype);
+    }
+}
+
+std::string getVkPhysicalDeviceType(VkPhysicalDeviceType pdtype)
+{
+    switch (pdtype)
+    {
+    case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+        return "VK_PHYSICAL_DEVICE_TYPE_OTHER";
+    case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+        return "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+        return "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+        return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_CPU:
+        return "VK_PHYSICAL_DEVICE_TYPE_CPU";
+    case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
+        return "VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM";
+    default:
+        return std::to_string(pdtype);
     }
 }

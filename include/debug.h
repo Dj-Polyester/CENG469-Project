@@ -24,15 +24,28 @@ namespace debug
 #endif
 
 #if defined(VERBOSE_ENABLED) || defined(INFO_ENABLED)
+#define DEBUG_INFO DEBUG
+#define DEBUG_INFO2 DEBUG2
+#define DEBUG_INFO3 DEBUG3
+#define debugVkExtensions(ext) ext.queryExtensions()
+#define debugVkLayers(ext) ext.queryLayers()
+#define debugGlfwExtensions(ext) ext.queryGlfwExtensions()
+#define debugPhysicalDevices(devManager) devManager.queryDevices()
+#define debugPhysicalDevice(dev) dev.query()
+#else
+#define DEBUG_INFO
+#define DEBUG_INFO2
+#define DEBUG_INFO3
+#define debugVkExtensions(ext)
+#define debugVkLayers(ext)
+#define debugGlfwExtensions(ext)
+#define debugPhysicalDevices(devManager)
+#define debugPhysicalDevice(dev)
+#endif
 
 #define DEBUG(var) PRINT(std::cerr, BLUE, var)
 #define DEBUG2(label, var) PRINT2(std::cerr, BLUE, label, var)
 #define DEBUG3(var) DEBUG2(#var, var)
-#else
-#define DEBUG(var)
-#define DEBUG2(label, var)
-#define DEBUG3(var)
-#endif
 
 #define ERROR(var)                          \
     {                                       \
@@ -46,9 +59,13 @@ namespace debug
         PRINT2(ss, RED, label, var);        \
         throw std::runtime_error(ss.str()); \
     }
+#define ERROR3(var) ERROR2(#var, var)
+#define ERROR4(str) ERROR2("error", str)
+
 #define CERROR(var) PRINT(std::cerr, RED, var)
 #define CERROR2(label, var) PRINT2(std::cerr, RED, label, var)
 #define CERROR3(var) CERROR2(#var, var)
+#define CERROR4(str) CERROR2("error", str)
 #define debugVkResult(result)                        \
     {                                                \
         std::string resultStr = getVkResult(result); \
@@ -62,65 +79,6 @@ namespace debug
         }                                            \
     }
 
-#define debugVkExtensions(extProps, extCount)                   \
-    {                                                           \
-        DEBUG2("Available extensions (extCount):", extCount);   \
-        if (extCount == UINT32_MAX)                             \
-        {                                                       \
-            ERROR("extCount is UINT32_MAX");                    \
-        }                                                       \
-        for (size_t i = 0; i < extCount; ++i)                   \
-        {                                                       \
-            DEBUG(i);                                           \
-            DEBUG2("extensionName", extProps[i].extensionName); \
-            DEBUG2("specVersion", extProps[i].specVersion);     \
-        }                                                       \
-    }
-
-#define debugVkLayers(layerProps, layerCount)                                     \
-    {                                                                             \
-        DEBUG2("Available layers (layerCount)", layerCount);                      \
-        if (layerCount == UINT32_MAX)                                             \
-        {                                                                         \
-            ERROR("layerCount is UINT32_MAX");                                    \
-        }                                                                         \
-        for (size_t i = 0; i < layerCount; ++i)                                   \
-        {                                                                         \
-            DEBUG(i);                                                             \
-            DEBUG2("layerName", layerProps[i].layerName);                         \
-            DEBUG2("specVersion", layerProps[i].specVersion);                     \
-            DEBUG2("implementationVersion", layerProps[i].implementationVersion); \
-            DEBUG2("description", layerProps[i].description);                     \
-        }                                                                         \
-    }
-
-#define debugGlfwExtensions(glfwExtensions, glfwExtCount)                \
-    {                                                                    \
-        DEBUG2("Required extensions glfw (glfwExtCount)", glfwExtCount); \
-        if (glfwExtCount == UINT32_MAX)                                  \
-        {                                                                \
-            ERROR("glfwExtCount is UINT32_MAX");                         \
-        }                                                                \
-        for (size_t i = 0; i < glfwExtCount; ++i)                        \
-        {                                                                \
-            DEBUG2(i, glfwExtensions[i]);                                \
-        }                                                                \
-    }
-
-#define debugVkpObjects(pObjects, objectCount)                     \
-    {                                                              \
-        DEBUG2("pObjects objectCount (objectCount)", objectCount); \
-        for (size_t i = 0; i < objectCount; ++i)                   \
-        {                                                          \
-            DEBUG(i);                                               \
-            if(pObjects[i].pObjectName)                             \
-                DEBUG2("pObjectName", pObjects[i].pObjectName);        \
-            DEBUG2("sType", getStructureType(pObjects[i].sType));  \
-            DEBUG2("objectType", pObjects[i].objectType);          \
-            DEBUG2("objectHandle", pObjects[i].objectHandle);      \
-        }                                                          \
-    }
-
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -128,36 +86,36 @@ namespace debug
         void *pUserData)
     {
 
-        DEBUG2("messageSeverity", getMessageSeverity(messageSeverity));
-        DEBUG2("messageType", getMessageType(messageType));
+        DEBUG_INFO2("messageSeverity", getDebugUtilsMessageSeverity(messageSeverity));
+        DEBUG_INFO2("messageType", getDebugUtilsMessageType(messageType));
         // debugVkpObjects(pCallbackData->pObjects, pCallbackData->objectCount);
         if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
             CERROR3(pCallbackData->pMessage);
             return VK_FALSE;
         }
-        DEBUG3(pCallbackData->pMessage);
+        DEBUG_INFO3(pCallbackData->pMessage);
         return VK_FALSE;
     }
 
-#define debugLayerSupport(layerProps)                            \
-    {                                                            \
-        for (const char *layerName : debug::validationLayers)    \
-        {                                                        \
-            bool layerFound = false;                             \
-            for (const auto &layerProp : layerProps)             \
-            {                                                    \
-                if (strcmp(layerName, layerProp.layerName) == 0) \
-                {                                                \
-                    layerFound = true;                           \
-                    break;                                       \
-                }                                                \
-            }                                                    \
-            if (!layerFound)                                     \
-            {                                                    \
-                ERROR2(layerName, "Layer not found");            \
-            }                                                    \
-        }                                                        \
+#define debugLayerSupport(layers)                             \
+    {                                                         \
+        for (const char *layerName : debug::validationLayers) \
+        {                                                     \
+            bool layerFound = false;                          \
+            for (const auto &layer : layers)                  \
+            {                                                 \
+                if (strcmp(layerName, layer.layerName) == 0)  \
+                {                                             \
+                    layerFound = true;                        \
+                    break;                                    \
+                }                                             \
+            }                                                 \
+            if (!layerFound)                                  \
+            {                                                 \
+                ERROR2(layerName, "Layer not found");         \
+            }                                                 \
+        }                                                     \
     }
 
 #define enableValLayer(createInfo)                                                            \
@@ -224,22 +182,20 @@ namespace debug
         debugVkResult(result);                                    \
     }
 #define destroyDebugMessenger(instance, debugMessenger) debug::destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr)
-#define glfwRequireDebugUtils() glfwRequire(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
+#define glfwRequireDebugUtils() glfwRequireExt(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
 #else
 
-#define DEBUG(var)
-#define DEBUG2(label, var)
-#define DEBUG3(var)
-#define DEBUG4(var)
 #define ERROR(var)
 #define ERROR2(label, var)
 #define ERROR3(var)
 #define ERROR4(var)
+#define ERROR4(str) ERROR2("error", str)
+#define CERROR(var)
+#define CERROR2(label, var)
+#define CERROR3(var)
+#define CERROR4(str)
 #define debugVkResult(result)
-#define debugVkLayers(layerProps, layerCount)
-#define debugVkExtensions(extProps, extCount)
-#define debugGlfwExtensions(glfwExtensions, glfwExtCount)
-#define debugLayerSupport(layerProps)
+#define debugLayerSupport(layers)
 #define enableValLayer(createInfo)        \
     {                                     \
         createInfo.enabledLayerCount = 0; \
@@ -248,5 +204,15 @@ namespace debug
 #define setupDebugMessenger(instance, debugMessenger)
 #define destroyDebugMessenger(instance, debugMessenger)
 #define glfwRequireDebugUtils()
+
+// VERBOSE
+#define DEBUG(var)
+#define DEBUG2(label, var)
+#define DEBUG3(var)
+#define debugVkExtensions(ext)
+#define debugVkLayers(ext)
+#define debugGlfwExtensions(ext)
+#define debugPhysicalDevice(dev)
+#define debugPhysicalDevices(devManager)
 #endif
 }
