@@ -3,6 +3,7 @@
 #include "instance.h"
 #include "physicalDevice.h"
 #include "logicalDevice.h"
+#include "surface.h"
 
 int main()
 {
@@ -16,9 +17,10 @@ int main()
         Window win(800, 600, "vulcano");
         Extension ext;
         Instance instance(win.name, ext);
-        PhysicalDevice physicalDevice(instance.instance);
+        Surface surface(instance.instance, win.window);
+        PhysicalDevice physicalDevice(instance.instance, surface.surface);
   
-        LogicalDevice logicalDevice(instance.instance, physicalDevice.getPhysicalDeviceHandle());
+        LogicalDevice logicalDevice(instance.instance, physicalDevice.getPhysicalDeviceHandle(), surface.surface);
         
         win.run();
         
