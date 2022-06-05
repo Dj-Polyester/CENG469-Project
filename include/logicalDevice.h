@@ -2,13 +2,13 @@
 
 #include "extension.h"
 #include <cstring>
-#include "physicalDevice.h"
+
 #include <set>
 
-extern std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
-extern const std::vector<const char*> deviceExtensions = {
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
+std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+//std::vector<const char*> deviceExtensions = {
+//	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+//};
 
 struct QueueFamilyIndices {
 	std::optional<uint32_t> graphicsFamily;
@@ -74,7 +74,10 @@ struct LogicalDevice
 		}
 
 		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
+		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 	}
+
+	
 
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
 		QueueFamilyIndices indices;

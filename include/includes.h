@@ -15,5 +15,12 @@
 #include <vector>
 #include <optional>
 #include <set>
+#include <algorithm>
 
 #include "C:\VulkanSDK\1.3.211.0\Include\vulkan\vulkan.h"
+
+struct SwapChainSupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
+};
