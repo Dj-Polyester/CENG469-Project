@@ -16,15 +16,18 @@ struct Surface
 		instance = _instance;
 		window = _window;
 
-		VkWin32SurfaceCreateInfoKHR createInfo{};
+		/*VkWin32SurfaceCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		createInfo.hwnd = glfwGetWin32Window(window);
 		createInfo.hinstance = GetModuleHandle(nullptr);
 
 		if (vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create window surface!");
-		}
+		}*/
 
+		if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create window surface!");
+		}
 	}
 
 	~Surface()
