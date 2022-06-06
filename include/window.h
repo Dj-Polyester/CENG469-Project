@@ -1,27 +1,26 @@
 #pragma once
 
-#include "extension.h"
+#include "instance.h"
 #include <cstring>
 
 struct Window
 {
-
+    // window vars
     GLFWwindow *window;
     uint32_t width, height;
-    std::string name;
-
-    Window(uint32_t w, uint32_t h, std::string n) : width(w), height(h), name(n)
+    VkSurfaceKHR surface;
+    const Instance &instance;
+    Window(uint32_t w, uint32_t h, const Instance &_instance)
+        : width(w),
+          height(h),
+          instance(_instance)
     {
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
-    }
-    ~Window()
-    {
-        glfwDestroyWindow(window);
-    }
-    Window(const Window &win) = delete;
-    Window &operator=(const Window &win) = delete;
+        window = glfwCreateWindow(width, height, instance.name.c_str(), nullptr, nullptr);
 
+        VkResult result = glfwCreateWindowSurface(instance.instance, window, nullptr, &surface);
+        debugVkResult(result);
+    }
     void run()
     {
         try
@@ -35,5 +34,10 @@ struct Window
         {
             std::cerr << e.what() << '\n';
         }
+    }
+    ~Window()
+    {
+        vkDestroySurfaceKHR(instance.instance, surface, nullptr);
+        glfwDestroyWindow(window);
     }
 };

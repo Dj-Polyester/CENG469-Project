@@ -16,7 +16,6 @@ struct Extension
     // number of required extensions by glfw
     uint32_t glfwExtCount = 0;
     // result variable
-    VkResult result = VK_SUCCESS;
     Extension(const Extension &ext)
     {
         this->extCount = ext.extCount;
@@ -32,7 +31,7 @@ struct Extension
 
         vkEnumerateInstanceExtensionProperties(nullptr, &extCount, nullptr);
         exts.resize(extCount);
-        result = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, exts.data());
+        VkResult result = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, exts.data());
         debugVkResult(result);
 
         debugVkExtensions((*this));

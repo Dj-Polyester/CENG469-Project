@@ -103,5 +103,5 @@ khronos_validation.disables = VK_VALIDATION_FEATURE_DISABLE_THREAD_SAFETY_EXT
 # <LayerIdentifier>.fine_grained_locking
 # Enable fine grained locking for Core Validation, which should improve
 # performance in multithreaded applications.
-khronos_validation.fine_grained_locking = true
+#khronos_validation.fine_grained_locking = true
 

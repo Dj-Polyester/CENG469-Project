@@ -1,77 +1,57 @@
-#include "instance.h"
+#include "window.h"
 #pragma once
 
 struct PhysicalDevice
 {
-    VkPhysicalDeviceProperties properties;
-    VkPhysicalDeviceFeatures features;
+    VkPhysicalDeviceProperties properties{};
+    VkPhysicalDeviceFeatures features{};
     VkPhysicalDevice device = VK_NULL_HANDLE;
 
+    // queue families;
     std::vector<VkQueueFamilyProperties> queueFamilies;
     uint32_t queueFamilyCount = 0;
-    // queue families;
-    std::vector<uint32_t> graphicsQueueFamilies;
-    uint32_t graphicsQueueFamilyCount = 0;
     std::optional<uint32_t> firstGraphicsQueueFamily;
-    PhysicalDevice()
+    std::optional<uint32_t> firstPresentQueueFamily;
+
+    const Window &win;
+    PhysicalDevice(const PhysicalDevice &pdev) : win(pdev.win)
     {
     }
-    PhysicalDevice(const VkPhysicalDevice &_device)
+    PhysicalDevice &operator=(const PhysicalDevice &&pdev)
     {
-        device = _device;
-        vkGetPhysicalDeviceProperties(device, &properties);
-        vkGetPhysicalDeviceFeatures(device, &features);
-    }
-    PhysicalDevice &operator&=(const VkPhysicalDevice &_device)
-    {
-        device = _device;
-        vkGetPhysicalDeviceProperties(device, &properties);
-        vkGetPhysicalDeviceFeatures(device, &features);
+        win = std::move(pdev.win);
         return *this;
     }
+    void setPF(const VkPhysicalDevice &_device)
+    {
+        device = _device;
+        vkGetPhysicalDeviceProperties(device, &properties);
+        vkGetPhysicalDeviceFeatures(device, &features);
+        // get queue families
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+        queueFamilies.resize(queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+    }
+    void getFirstSuitableQueueFamily()
+    {
+        for (size_t i = 0; i < queueFamilyCount; i++)
+        {
+            VkBool32 presentSupport = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, win.surface, &presentSupport);
 
-    void getQueueFamilies()
-    {
-        if (queueFamilyCount == 0)
-        {
-            vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-            queueFamilies.resize(queueFamilyCount);
-            vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-        }
-    }
-    void getGraphicsQueueFamilies()
-    {
-        if (graphicsQueueFamilyCount == 0)
-        {
-            uint32_t i = 0;
-            for (const auto &queueFamily : queueFamilies)
+            if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT && presentSupport)
             {
-                if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-                {
-                    graphicsQueueFamilies.push_back(i);
-                }
-                ++i;
-            }
-            graphicsQueueFamilyCount = graphicsQueueFamilies.size();
-        }
-    }
-    void getFirstGraphicsQueueFamily()
-    {
-        uint32_t i = 0;
-        for (const auto &queueFamily : queueFamilies)
-        {
-            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            {
+
                 firstGraphicsQueueFamily = i;
+                firstPresentQueueFamily = i;
                 break;
             }
-            ++i;
         }
     }
     bool supportsGraphics()
     {
-        getFirstGraphicsQueueFamily();
-        return firstGraphicsQueueFamily.has_value();
+        getFirstSuitableQueueFamily();
+        return firstGraphicsQueueFamily.has_value() && firstPresentQueueFamily.has_value();
     }
     uint32_t score() const
     {
@@ -87,10 +67,10 @@ struct PhysicalDevice
         score += properties.limits.maxImageDimension2D;
 
         // Application can't function without geometry shaders
-        // if (!features.geometryShader)
-        // {
-        //     return 0;
-        // }
+        if (!features.geometryShader)
+        {
+            return 0;
+        }
 
         return score;
     }
@@ -287,24 +267,29 @@ struct PhysicalDevice
 
 struct PhysicalDeviceManager
 {
-    std::optional<uint32_t> bestDeviceOnScore;
+    std::optional<uint32_t> bestDeviceOnScoreIndex;
     uint32_t deviceCount = 0;
-    VkInstance instance;
     std::vector<PhysicalDevice> devices;
-    PhysicalDeviceManager(const Instance &_instance)
+
+    const Window &win;
+    const Instance &instance;
+    PhysicalDeviceManager(
+        const Window &_win,
+        const Instance &_instance)
+        : win(_win),
+          instance(_instance)
     {
-        instance = _instance.instance;
-        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+        vkEnumeratePhysicalDevices(instance.instance, &deviceCount, nullptr);
         if (deviceCount == 0)
         {
             ERROR4("Failed to find devices with Vulkan support");
         }
         std::vector<VkPhysicalDevice> devices_tmp(deviceCount);
-        vkEnumeratePhysicalDevices(instance, &deviceCount, devices_tmp.data());
-        devices.resize(deviceCount);
+        vkEnumeratePhysicalDevices(instance.instance, &deviceCount, devices_tmp.data());
+        devices.resize(deviceCount, PhysicalDevice(win));
         for (size_t i = 0; i < deviceCount; i++)
         {
-            devices[i] = devices_tmp[i];
+            devices[i].setPF(devices_tmp[i]);
         }
         debugPhysicalDevices((*this));
     }
@@ -318,11 +303,11 @@ struct PhysicalDeviceManager
         }
     }
 
-    PhysicalDevice pickBestScore()
+    PhysicalDevice bestDeviceOnScore(const VkSurfaceKHR &surface)
     {
-        if (bestDeviceOnScore.has_value())
+        if (bestDeviceOnScoreIndex.has_value())
         {
-            return devices[bestDeviceOnScore.value()];
+            return devices[bestDeviceOnScoreIndex.value()];
         }
 
         // Use an ordered map to automatically sort candidates by increasing score
@@ -336,14 +321,14 @@ struct PhysicalDeviceManager
         }
 
         // Check if the best candidate is suitable at all
-        if (candidates.rbegin()->first > 0)
+        if (candidates.rbegin()->first > 0 && devices[candidates.rbegin()->second].supportsGraphics())
         {
-            bestDeviceOnScore = candidates.rbegin()->second;
+            bestDeviceOnScoreIndex = candidates.rbegin()->second;
         }
         else
         {
             ERROR4("Failed to find a suitable GPU!");
         }
-        return devices[bestDeviceOnScore.value()];
+        return devices[bestDeviceOnScoreIndex.value()];
     }
 };

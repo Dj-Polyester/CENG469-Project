@@ -1,3 +1,0 @@
-UNASSIGNED-khronos-Validation-fine-grained-locking-warning-message(WARN / PERF): msgNum: 2081428434 - Validation Performance Warning: [ UNASSIGNED-khronos-Validation-fine-grained-locking-warning-message ] Object 0: handle = 0x561c45360400, type = VK_OBJECT_TYPE_INSTANCE; | MessageID = 0x7c1013d2 | Fine-grained locking is experimental, crashes or incorrect results are possible.
-    Objects: 1
-        [0] 0x561c45360400, type: 1, name: NULL

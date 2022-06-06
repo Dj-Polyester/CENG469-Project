@@ -66,17 +66,17 @@ namespace debug
 #define CERROR2(label, var) PRINT2(std::cerr, RED, label, var)
 #define CERROR3(var) CERROR2(#var, var)
 #define CERROR4(str) CERROR2("error", str)
-#define debugVkResult(result)                        \
-    {                                                \
-        std::string resultStr = getVkResult(result); \
-        if (resultStr == "VK_SUCCESS")               \
-        {                                            \
-            DEBUG2("resultStr", VK_SUCCESS);         \
-        }                                            \
-        else                                         \
-        {                                            \
-            ERROR2("resultStr", resultStr.c_str())   \
-        }                                            \
+#define debugVkResult(result)                            \
+    {                                                    \
+        std::string resultStr = getVkResult(result);     \
+        if (resultStr == "VK_SUCCESS")                   \
+        {                                                \
+            DEBUG_INFO2("resultStr", resultStr.c_str()); \
+        }                                                \
+        else                                             \
+        {                                                \
+            ERROR2("resultStr", resultStr.c_str())       \
+        }                                                \
     }
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
