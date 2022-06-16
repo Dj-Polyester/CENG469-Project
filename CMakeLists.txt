@@ -9,6 +9,7 @@ add_compile_definitions(VALIDATION_ENABLED)
 include_directories(include)
 file(GLOB_RECURSE SRC_FILES src/*)
 file(GLOB_RECURSE HEADERS include/*)
+
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${HEADERS})
 # GLFW
 if (WIN32)

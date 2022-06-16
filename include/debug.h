@@ -182,7 +182,7 @@ namespace debug
         debugVkResult(result);                                    \
     }
 #define destroyDebugMessenger(instance, debugMessenger) debug::destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr)
-#define glfwRequireDebugUtils() glfwRequireExt(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
+#define glfwRequireDebugUtils(ext) ext.glfwRequireExt(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
 #else
 
 #define ERROR(var)

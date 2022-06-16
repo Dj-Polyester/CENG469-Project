@@ -46,7 +46,7 @@ struct Extension
         const char **glfwExts_tmp = glfwGetRequiredInstanceExtensions(&glfwExtCount);
         glfwExts.insert(glfwExts.begin(), glfwExts_tmp, glfwExts_tmp + glfwExtCount);
 
-        glfwRequireDebugUtils();
+        glfwRequireDebugUtils((*this));
 
         debugVkExtensions((*this));
     }
@@ -56,12 +56,7 @@ struct Extension
         glfwExts.push_back(extName);
         ++glfwExtCount;
     }
-    void glfwRequireExts(std::vector<const char *> extNames)
-    {
-        glfwExts.insert(glfwExts.end(), extNames.begin(), extNames.end());
-        glfwExtCount += extNames.size();
-    }
-    void glfwRequireExts(std::vector<const char *> &extNames)
+    void glfwRequireExts(const std::vector<const char *> &extNames)
     {
         glfwExts.insert(glfwExts.end(), extNames.begin(), extNames.end());
         glfwExtCount += extNames.size();

@@ -12,7 +12,7 @@ int main()
         Instance instance(ext, app, "vulcano");
         Window win(800, 600, instance);
         PhysicalDeviceManager pdevman(win, instance);
-        LogicalDevice ldev(pdevman.bestDeviceOnScore(win.surface));
+        LogicalDevice ldev(pdevman.bestDeviceOnScore());
 
         win.run();
         glfwTerminate();

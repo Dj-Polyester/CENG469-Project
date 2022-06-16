@@ -14,15 +14,7 @@ struct PhysicalDevice
     std::optional<uint32_t> firstPresentQueueFamily;
 
     const Window &win;
-    PhysicalDevice(const PhysicalDevice &pdev) : win(pdev.win)
-    {
-    }
-    PhysicalDevice &operator=(const PhysicalDevice &&pdev)
-    {
-        win = std::move(pdev.win);
-        return *this;
-    }
-    void setPF(const VkPhysicalDevice &_device)
+    PhysicalDevice(const VkPhysicalDevice _device, const Window &_win) : win(_win)
     {
         device = _device;
         vkGetPhysicalDeviceProperties(device, &properties);
@@ -31,6 +23,12 @@ struct PhysicalDevice
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
         queueFamilies.resize(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+    }
+    PhysicalDevice(const PhysicalDevice &&pdev) : win(pdev.win),
+                                                  device(pdev.device),
+                                                  properties(pdev.properties),
+                                                  features(pdev.features)
+    {
     }
     void getFirstSuitableQueueFamily()
     {
@@ -41,7 +39,6 @@ struct PhysicalDevice
 
             if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT && presentSupport)
             {
-
                 firstGraphicsQueueFamily = i;
                 firstPresentQueueFamily = i;
                 break;
@@ -286,10 +283,10 @@ struct PhysicalDeviceManager
         }
         std::vector<VkPhysicalDevice> devices_tmp(deviceCount);
         vkEnumeratePhysicalDevices(instance.instance, &deviceCount, devices_tmp.data());
-        devices.resize(deviceCount, PhysicalDevice(win));
+        devices.reserve(deviceCount);
         for (size_t i = 0; i < deviceCount; i++)
         {
-            devices[i].setPF(devices_tmp[i]);
+            devices.push_back(PhysicalDevice(devices_tmp[i], win));
         }
         debugPhysicalDevices((*this));
     }
@@ -303,8 +300,9 @@ struct PhysicalDeviceManager
         }
     }
 
-    PhysicalDevice bestDeviceOnScore(const VkSurfaceKHR &surface)
+    PhysicalDevice &bestDeviceOnScore()
     {
+        uint32_t val;
         if (bestDeviceOnScoreIndex.has_value())
         {
             return devices[bestDeviceOnScoreIndex.value()];
