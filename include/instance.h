@@ -25,10 +25,11 @@ struct Instance
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &app.info;
 
-        createInfo.enabledExtensionCount = static_cast<uint32_t>(ext.glfwExts.size());
+        createInfo.enabledExtensionCount = ext.glfwExtCount;
         createInfo.ppEnabledExtensionNames = ext.glfwExts.data();
 
         enableValLayer(createInfo);
+        enableValLayerInstance(createInfo);
 
         VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
         debugVkResult(result);

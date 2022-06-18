@@ -27,7 +27,8 @@ namespace debug
 #define DEBUG_INFO DEBUG
 #define DEBUG_INFO2 DEBUG2
 #define DEBUG_INFO3 DEBUG3
-#define debugVkExtensions(ext) ext.queryExtensions()
+#define debugVkInstanceExtensions(ext) ext.queryExtensions()
+#define debugVkDeviceExtensions debugVkInstanceExtensions
 #define debugVkLayers(ext) ext.queryLayers()
 #define debugGlfwExtensions(ext) ext.queryGlfwExtensions()
 #define debugPhysicalDevices(devManager) devManager.queryDevices()
@@ -36,7 +37,8 @@ namespace debug
 #define DEBUG_INFO
 #define DEBUG_INFO2
 #define DEBUG_INFO3
-#define debugVkExtensions(ext)
+#define debugVkInstanceExtensions(ext)
+#define debugVkDeviceExtensions(ext)
 #define debugVkLayers(ext)
 #define debugGlfwExtensions(ext)
 #define debugPhysicalDevices(devManager)
@@ -120,11 +122,14 @@ namespace debug
 
 #define enableValLayer(createInfo)                                                            \
     {                                                                                         \
-        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};                                 \
         createInfo.enabledLayerCount = static_cast<uint32_t>(debug::validationLayers.size()); \
         createInfo.ppEnabledLayerNames = debug::validationLayers.data();                      \
-        debug::populateDebugMessengerCreateInfo(debugCreateInfo);                             \
-        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo;            \
+    }
+#define enableValLayerInstance(createInfo)                                         \
+    {                                                                              \
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};                      \
+        debug::populateDebugMessengerCreateInfo(debugCreateInfo);                  \
+        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo; \
     }
 
     VkResult createDebugUtilsMessengerEXT(
@@ -201,6 +206,7 @@ namespace debug
         createInfo.enabledLayerCount = 0; \
         createInfo.pNext = nullptr;       \
     }
+#define enableValLayerInstance(createInfo)
 #define setupDebugMessenger(instance, debugMessenger)
 #define destroyDebugMessenger(instance, debugMessenger)
 #define glfwRequireDebugUtils()
@@ -209,7 +215,8 @@ namespace debug
 #define DEBUG(var)
 #define DEBUG2(label, var)
 #define DEBUG3(var)
-#define debugVkExtensions(ext)
+#define debugVkInstanceExtensions(ext)
+#define debugVkDeviceExtensions(ext)
 #define debugVkLayers(ext)
 #define debugGlfwExtensions(ext)
 #define debugPhysicalDevice(dev)

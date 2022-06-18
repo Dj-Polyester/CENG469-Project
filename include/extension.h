@@ -1,6 +1,7 @@
 #pragma once
 
 #include "debug.h"
+
 struct Extension
 {
     // available extensions
@@ -15,17 +16,6 @@ struct Extension
     std::vector<const char *> glfwExts;
     // number of required extensions by glfw
     uint32_t glfwExtCount = 0;
-    // result variable
-    Extension(const Extension &ext)
-    {
-        this->extCount = ext.extCount;
-        this->layerCount = ext.layerCount;
-        this->glfwExtCount = ext.glfwExtCount;
-
-        this->exts = ext.exts;
-        this->layers = ext.layers;
-        this->glfwExts = ext.glfwExts;
-    }
     Extension()
     {
 
@@ -34,21 +24,21 @@ struct Extension
         VkResult result = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, exts.data());
         debugVkResult(result);
 
-        debugVkExtensions((*this));
+        debugVkInstanceExtensions((*this));
 
         vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
         layers.resize(layerCount);
         result = vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
         debugVkResult(result);
 
-        debugVkExtensions((*this));
+        debugVkLayers((*this));
 
         const char **glfwExts_tmp = glfwGetRequiredInstanceExtensions(&glfwExtCount);
         glfwExts.insert(glfwExts.begin(), glfwExts_tmp, glfwExts_tmp + glfwExtCount);
 
         glfwRequireDebugUtils((*this));
 
-        debugVkExtensions((*this));
+        debugVkInstanceExtensions((*this));
     }
 
     void glfwRequireExt(const char *extName)
@@ -76,7 +66,7 @@ struct Extension
     }
     void queryExtensions()
     {
-        DEBUG2("Available extensions (extCount):", extCount);
+        DEBUG2("Available instance extensions:", extCount);
         for (size_t i = 0; i < extCount; ++i)
         {
             DEBUG(i);

@@ -16,7 +16,7 @@ khronos_validation.debug_action = VK_DBG_LAYER_ACTION_LOG_MSG
 # =====================
 # <LayerIdentifier>.log_filename
 # Specifies the output filename
-khronos_validation.log_filename = log.txt
+khronos_validation.log_filename = ./log/log.txt
 
 # Message Severity
 # =====================
