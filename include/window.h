@@ -1,7 +1,6 @@
 #pragma once
 
-#include "instance.h"
-#include <cstring>
+#include "includes.h"
 
 struct Window
 {
@@ -9,21 +8,31 @@ struct Window
     GLFWwindow *window;
     uint32_t width, height;
     VkSurfaceKHR surface;
-    const Instance &instance;
-    Window(uint32_t w, uint32_t h, const Instance &_instance)
+    const std::string name;
+
+    Window(const Window &) = delete;
+    Window &operator=(const Window &) = delete;
+
+    Window(uint32_t w, uint32_t h, const std::string &_name)
         : width(w),
           height(h),
-          instance(_instance)
+          name(_name)
     {
+        glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        window = glfwCreateWindow(width, height, instance.name.c_str(), nullptr, nullptr);
-
-        VkResult result = glfwCreateWindowSurface(instance.instance, window, nullptr, &surface);
-        debugVkResult(result);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
+    }
+    void createWindowSurface(VkInstance &instance, VkSurfaceKHR &surface)
+    {
+        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+        {
+            std::runtime_error("Familed to create window surface");
+        }
     }
     ~Window()
     {
-        vkDestroySurfaceKHR(instance.instance, surface, nullptr);
         glfwDestroyWindow(window);
+        glfwTerminate();
     }
 };

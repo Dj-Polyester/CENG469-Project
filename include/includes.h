@@ -15,9 +15,12 @@
 #include <glm/mat4x4.hpp>
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <optional>
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <algorithm>
 #include <fstream>
+#include <sstream>

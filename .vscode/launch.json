@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/build/testProj",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}",
             "environment": [
                 {
                     "name": "VK_LAYER_SETTINGS_PATH",
