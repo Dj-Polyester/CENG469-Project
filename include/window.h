@@ -1,6 +1,6 @@
 #pragma once
 
-#include "includes.h"
+#include "debug.h"
 
 struct Window
 {
@@ -23,11 +23,12 @@ struct Window
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
         window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
     }
+    VkExtent2D getExtent() { return {width, height}; }
     void createWindowSurface(VkInstance &instance, VkSurfaceKHR &surface)
     {
         if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
         {
-            std::runtime_error("Familed to create window surface");
+            ERROR("failed to create window surface");
         }
     }
     ~Window()

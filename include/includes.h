@@ -17,6 +17,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#include <array>
 #include <optional>
 #include <map>
 #include <set>
@@ -24,3 +25,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <memory>
+
+#define WIDTH 800
+#define HEIGHT 600
