@@ -21,20 +21,6 @@ struct Window
         VkResult result = glfwCreateWindowSurface(instance.instance, window, nullptr, &surface);
         debugVkResult(result);
     }
-    void run()
-    {
-        try
-        {
-            while (!glfwWindowShouldClose(window))
-            {
-                glfwPollEvents();
-            }
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << e.what() << '\n';
-        }
-    }
     ~Window()
     {
         vkDestroySurfaceKHR(instance.instance, surface, nullptr);

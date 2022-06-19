@@ -2,14 +2,15 @@
 #include "logical_device.h"
 struct RenderPass
 {
+
     VkRenderPass renderPass;
     VkRenderPassCreateInfo createInfo{};
     VkAttachmentDescription colorAttachment{};
     VkAttachmentReference colorAttachmentRef{};
     VkSubpassDescription subpass{};
 
-    const LogicalDevice &device;
-    RenderPass(const LogicalDevice &_device)
+    const Device &device;
+    RenderPass(const Device &_device)
         : device(_device)
     {
     }
@@ -36,6 +37,19 @@ struct RenderPass
         createInfo.pAttachments = &colorAttachment;
         createInfo.subpassCount = 1;
         createInfo.pSubpasses = &subpass;
+
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = VK_ACCESS_NONE;
+
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        createInfo.dependencyCount = 1;
+        createInfo.pDependencies = &dependency;
 
         VkResult result = vkCreateRenderPass(device.device, &createInfo, nullptr, &renderPass);
         debugVkResult(result);

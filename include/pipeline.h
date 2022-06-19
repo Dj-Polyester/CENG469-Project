@@ -14,14 +14,12 @@ struct Pipeline
     VkPipelineLayout layout;
     VkPipeline pipeline;
     VkPipelineLayoutCreateInfo layoutInfo{};
-    const LogicalDevice &device;
     const SwapChain &swapChain;
-    Pipeline(const LogicalDevice &_device, const SwapChain &_swapChain)
-        : device(_device),
-          swapChain(_swapChain)
+    Pipeline(const SwapChain &_swapChain)
+        : swapChain(_swapChain)
     {
-        Shader vertshader("shaders/spv/tri_vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT);
-        Shader fragshader("shaders/spv/tri_frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT);
+        Shader vertshader("/home/polyester/Desktop/Programming/CENG469-Project/shaders/spv/tri_vert.spv", swapChain.device, VK_SHADER_STAGE_VERTEX_BIT);
+        Shader fragshader("/home/polyester/Desktop/Programming/CENG469-Project/shaders/spv/tri_frag.spv", swapChain.device, VK_SHADER_STAGE_FRAGMENT_BIT);
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
             vertshader.shaderStageCreateInfo,
             fragshader.shaderStageCreateInfo,
@@ -53,7 +51,7 @@ struct Pipeline
         layoutInfo.pushConstantRangeCount = 0;    // Optional
         layoutInfo.pPushConstantRanges = nullptr; // Optional
 
-        VkResult result = vkCreatePipelineLayout(device.device, &layoutInfo, nullptr, &layout);
+        VkResult result = vkCreatePipelineLayout(swapChain.device.device, &layoutInfo, nullptr, &layout);
         debugVkResult(result);
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -82,12 +80,12 @@ struct Pipeline
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineInfo.basePipelineIndex = -1;              // Optional
 
-        result = vkCreateGraphicsPipelines(device.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
+        result = vkCreateGraphicsPipelines(swapChain.device.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
         debugVkResult(result);
     }
     ~Pipeline()
     {
-        vkDestroyPipeline(device.device, pipeline, nullptr);
-        vkDestroyPipelineLayout(device.device, layout, nullptr);
+        vkDestroyPipeline(swapChain.device.device, pipeline, nullptr);
+        vkDestroyPipelineLayout(swapChain.device.device, layout, nullptr);
     }
 };

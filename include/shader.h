@@ -6,12 +6,12 @@ struct Shader
     size_t fileSize;
     std::vector<char> file;
     VkShaderModule _module;
-    const LogicalDevice &device;
+    const Device &device;
     VkPipelineShaderStageCreateInfo shaderStageCreateInfo{};
     VkShaderModuleCreateInfo shaderModuleCreateInfo{};
     Shader(
         std::string shaderPath,
-        const LogicalDevice &_device,
+        const Device &_device,
         const VkShaderStageFlagBits &&flagBits) : device(_device)
     {
         std::ifstream file_tmp(shaderPath, std::ios::ate | std::ios::binary);

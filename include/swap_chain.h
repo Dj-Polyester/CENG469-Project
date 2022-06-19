@@ -4,8 +4,7 @@
 struct SwapChain
 {
     VkSwapchainKHR swapChain;
-    const PhysicalDevice &pdev;
-    const LogicalDevice &ldev;
+    const Device &device;
     const Window &win;
 
     VkSurfaceFormatKHR surfaceFormat;
@@ -18,24 +17,22 @@ struct SwapChain
     uint32_t imageCount;
     RenderPass renderPass;
     SwapChain(
-        const PhysicalDevice &_pdev,
-        const LogicalDevice &_ldev,
+        const Device &_ldev,
         const Window &_win)
-        : pdev(_pdev),
-          ldev(_ldev),
+        : device(_ldev),
           win(_win),
-          surfaceFormat{_pdev.swapChainDetails.chooseSurfaceFormatSrgb()},
-          presentMode{_pdev.swapChainDetails.choosePresentModeTriBuffer()},
-          extent{_pdev.swapChainDetails.chooseExtent()},
-          imageCount{_pdev.swapChainDetails.capabilities.minImageCount + 1},
-          renderPass{ldev}
+          surfaceFormat{device.physical.swapChainDetails.chooseSurfaceFormatSrgb()},
+          presentMode{device.physical.swapChainDetails.choosePresentModeTriBuffer()},
+          extent{device.physical.swapChainDetails.chooseExtent()},
+          imageCount{device.physical.swapChainDetails.capabilities.minImageCount + 1},
+          renderPass{device}
 
     {
         if (
-            pdev.swapChainDetails.capabilities.maxImageCount > 0 &&
-            imageCount > pdev.swapChainDetails.capabilities.maxImageCount)
+            device.physical.swapChainDetails.capabilities.maxImageCount > 0 &&
+            imageCount > device.physical.swapChainDetails.capabilities.maxImageCount)
         {
-            imageCount = pdev.swapChainDetails.capabilities.maxImageCount;
+            imageCount = device.physical.swapChainDetails.capabilities.maxImageCount;
         }
         VkSwapchainCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -47,11 +44,11 @@ struct SwapChain
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-        if (pdev.queueFamilies.firstGraphicsQueueFamily != pdev.queueFamilies.firstPresentQueueFamily)
+        if (device.physical.queueFamilies.firstGraphicsQueueFamily != device.physical.queueFamilies.firstPresentQueueFamily)
         {
             createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
             createInfo.queueFamilyIndexCount = 2;
-            createInfo.pQueueFamilyIndices = pdev.queueFamilies.chosen.data();
+            createInfo.pQueueFamilyIndices = device.physical.queueFamilies.chosen.data();
         }
         else
         {
@@ -59,19 +56,19 @@ struct SwapChain
             createInfo.queueFamilyIndexCount = 0;     // Optional
             createInfo.pQueueFamilyIndices = nullptr; // Optional
         }
-        createInfo.preTransform = pdev.swapChainDetails.capabilities.currentTransform;
+        createInfo.preTransform = device.physical.swapChainDetails.capabilities.currentTransform;
         createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
         createInfo.presentMode = presentMode;
         createInfo.clipped = VK_TRUE;
         createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-        VkResult result = vkCreateSwapchainKHR(ldev.device, &createInfo, nullptr, &swapChain);
+        VkResult result = vkCreateSwapchainKHR(device.device, &createInfo, nullptr, &swapChain);
         debugVkResult(result);
 
-        vkGetSwapchainImagesKHR(ldev.device, swapChain, &imageCount, nullptr);
+        vkGetSwapchainImagesKHR(device.device, swapChain, &imageCount, nullptr);
         images.resize(imageCount);
-        vkGetSwapchainImagesKHR(ldev.device, swapChain, &imageCount, images.data());
+        vkGetSwapchainImagesKHR(device.device, swapChain, &imageCount, images.data());
         // CREATE IMAGE VIEWS
         imageViews.resize(imageCount);
         for (size_t i = 0; i < imageCount; i++)
@@ -94,7 +91,7 @@ struct SwapChain
             createInfo.subresourceRange.baseArrayLayer = 0;
             createInfo.subresourceRange.layerCount = 1;
 
-            VkResult result = vkCreateImageView(ldev.device, &createInfo, nullptr, &imageViews[i]);
+            VkResult result = vkCreateImageView(device.device, &createInfo, nullptr, &imageViews[i]);
             debugVkResult(result);
         }
         // CREATE RENDER PASS
@@ -115,7 +112,7 @@ struct SwapChain
             framebufferInfo.height = extent.height;
             framebufferInfo.layers = 1;
 
-            VkResult result = vkCreateFramebuffer(ldev.device, &framebufferInfo, nullptr, &framebuffers[i]);
+            VkResult result = vkCreateFramebuffer(device.device, &framebufferInfo, nullptr, &framebuffers[i]);
             debugVkResult(result);
         }
     }
@@ -123,9 +120,9 @@ struct SwapChain
     {
         for (size_t i = 0; i < imageCount; i++)
         {
-            vkDestroyFramebuffer(ldev.device, framebuffers[i], nullptr);
-            vkDestroyImageView(ldev.device, imageViews[i], nullptr);
+            vkDestroyFramebuffer(device.device, framebuffers[i], nullptr);
+            vkDestroyImageView(device.device, imageViews[i], nullptr);
         }
-        vkDestroySwapchainKHR(ldev.device, swapChain, nullptr);
+        vkDestroySwapchainKHR(device.device, swapChain, nullptr);
     }
 };
