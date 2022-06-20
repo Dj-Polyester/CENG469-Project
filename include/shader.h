@@ -9,8 +9,11 @@ struct Shader
     VkPipelineShaderStageCreateInfo stageCreateInfo{};
     const VkShaderStageFlagBits stage;
     Device &device;
+
     Shader(const Shader &) = delete;
-    Shader &operator=(const Shader &) = delete;
+    void operator=(const Shader &) = delete;
+    Shader(Shader &&) = delete;
+    Shader &operator=(Shader &&) = delete;
 
     Shader(Device &_device, const std::string &filePath, const VkShaderStageFlagBits &&_stage)
         : device{_device},
@@ -33,7 +36,7 @@ struct Shader
         moduleCreateInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
         moduleCreateInfo.codeSize = size;
 
-        if (vkCreateShaderModule(device.device(), &moduleCreateInfo, nullptr, &module_) != VK_SUCCESS)
+        if (vkCreateShaderModule(device.logical, &moduleCreateInfo, nullptr, &module_) != VK_SUCCESS)
         {
             ERROR("failed to create shader module");
         }
@@ -48,6 +51,6 @@ struct Shader
     }
     ~Shader()
     {
-        vkDestroyShaderModule(device.device(), module_, nullptr);
+        vkDestroyShaderModule(device.logical, module_, nullptr);
     }
 };

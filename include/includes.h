@@ -26,6 +26,7 @@
 #include <fstream>
 #include <sstream>
 #include <memory>
+#include <cassert>
 
 #define WIDTH 800
 #define HEIGHT 600

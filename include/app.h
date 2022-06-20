@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pipeline.h"
+#include "model.h"
 
 struct App
 {
@@ -8,31 +9,39 @@ struct App
     Window win;
     Device device;
     SwapChain swapChain;
-    PipelineConfigInfo pipelineConfigInfo;
     std::vector<VkCommandBuffer> commandBuffers;
     std::unique_ptr<Pipeline> pipeline;
+    std::unique_ptr<Model> model;
+
     App(const App &) = delete;
-    App &operator=(const App &) = delete;
+    void operator=(const App &) = delete;
+    App(App &&) = delete;
+    App &operator=(App &&) = delete;
 
     App()
         : win{WIDTH, HEIGHT, "hello"},
           device{win},
-          swapChain{device, win.getExtent()},
-          pipelineConfigInfo{swapChain}
+          swapChain{device, win.getExtent()}
     {
-        pipelineConfigInfo.defaultPipelineConfigInfo();
         pipeline = std::make_unique<Pipeline>("./shaders/spv/tri.vert.spv",
                                               "./shaders/spv/tri.frag.spv",
-                                              pipelineConfigInfo);
+                                              swapChain);
 
-        commandBuffers.resize(swapChain.imageCount());
+        const std::vector<Vertex> vertices = {
+            {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+            {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+
+        model = std::make_unique<Model>(
+            device, vertices);
+        commandBuffers.resize(swapChain.imageCount);
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = swapChain.getDevice().getCommandPool();
+        allocInfo.commandPool = swapChain.device.commandPool;
         allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-        if (vkAllocateCommandBuffers(swapChain.getDevice().device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
+        if (vkAllocateCommandBuffers(swapChain.device.logical, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
         {
             ERROR("failed to allocate command buffers");
         }
@@ -46,10 +55,10 @@ struct App
             }
             VkRenderPassBeginInfo renderPassInfo{};
             renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            renderPassInfo.renderPass = swapChain.getRenderPass();
-            renderPassInfo.framebuffer = swapChain.getFrameBuffer(i);
+            renderPassInfo.renderPass = swapChain.renderPass;
+            renderPassInfo.framebuffer = swapChain.frameBuffers[i];
             renderPassInfo.renderArea.offset = {0, 0};
-            renderPassInfo.renderArea.extent = swapChain.getSwapChainExtent();
+            renderPassInfo.renderArea.extent = swapChain.extent;
 
             std::array<VkClearValue, 2> clearValues{};
             clearValues[0].color = {.1, .1, .1, 1};
@@ -60,7 +69,8 @@ struct App
 
             vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
             pipeline->bind(commandBuffers[i]);
-            vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+            model->bind(commandBuffers[i]);
+            model->draw(commandBuffers[i]);
             vkCmdEndRenderPass(commandBuffers[i]);
             if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
             {
@@ -92,6 +102,6 @@ struct App
             glfwPollEvents();
             drawFrame();
         }
-        vkDeviceWaitIdle(device.device());
+        vkDeviceWaitIdle(device.logical);
     }
 };

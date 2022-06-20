@@ -1,9 +1,16 @@
 #pragma once
 #include "shader.h"
 #include "swap_chain.h"
+#include "model.h"
 
-struct PipelineConfigInfo
+struct Pipeline
 {
+
+    Pipeline(const Pipeline &) = delete;
+    void operator=(const Pipeline &) = delete;
+    Pipeline(Pipeline &&) = delete;
+    Pipeline &operator=(Pipeline &&) = delete;
+
     SwapChain &swapChain;
     VkViewport viewport{};
     VkRect2D scissor{};
@@ -19,31 +26,31 @@ struct PipelineConfigInfo
     VkPipelineColorBlendStateCreateInfo colorBlendInfo{};
     VkPipelineDepthStencilStateCreateInfo depthStencilInfo{};
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-    PipelineConfigInfo(SwapChain &_swapChain) : swapChain(_swapChain)
+
+    VkPipeline graphicsPipeline{};
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+    Pipeline(const std::string &vertPath, const std::string &fragPath, SwapChain &_swapChain) : swapChain(_swapChain)
     {
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 0;
         pipelineLayoutInfo.pSetLayouts = nullptr;
         pipelineLayoutInfo.pushConstantRangeCount = 0;
         pipelineLayoutInfo.pPushConstantRanges = nullptr;
-        if (vkCreatePipelineLayout(swapChain.getDevice().device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+        if (vkCreatePipelineLayout(swapChain.device.logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
         {
             ERROR("failed to create a pipeline layout");
         }
-        renderPass = swapChain.getRenderPass();
-    }
-    ~PipelineConfigInfo()
-    {
-        vkDestroyPipelineLayout(swapChain.getDevice().device(), pipelineLayout, nullptr);
-    }
-    void defaultPipelineConfigInfo()
-    {
+        renderPass = swapChain.renderPass;
+        // CONFIG
+
+        auto vertexAttributeDescriptions = Vertex::getAttributeDescriptions();
+        auto vertexBindingDescriptions = Vertex::getBindingDescriptions();
 
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexAttributeDescriptionCount = 0;
-        vertexInputInfo.vertexBindingDescriptionCount = 0;
-        vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-        vertexInputInfo.pVertexBindingDescriptions = nullptr;
+        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributeDescriptions.size());
+        vertexInputInfo.pVertexAttributeDescriptions = vertexAttributeDescriptions.data();
+        vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(vertexBindingDescriptions.size());
+        vertexInputInfo.pVertexBindingDescriptions = vertexBindingDescriptions.data();
 
         inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -51,13 +58,13 @@ struct PipelineConfigInfo
 
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = static_cast<float>(swapChain.width());
-        viewport.height = static_cast<float>(swapChain.height());
+        viewport.width = static_cast<float>(swapChain.extent.width);
+        viewport.height = static_cast<float>(swapChain.extent.height);
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
 
         scissor.offset = {0, 0};
-        scissor.extent = {swapChain.width(), swapChain.height()};
+        scissor.extent = {swapChain.extent.width, swapChain.extent.height};
 
         viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         viewportInfo.viewportCount = 1;
@@ -116,49 +123,35 @@ struct PipelineConfigInfo
         depthStencilInfo.stencilTestEnable = VK_FALSE;
         depthStencilInfo.front = {}; // Optional
         depthStencilInfo.back = {};  // Optional
-    }
-};
-struct Pipeline
-{
+        // CREATE
+        Shader vertShader{swapChain.device, vertPath, VK_SHADER_STAGE_VERTEX_BIT};
+        Shader fragShader{swapChain.device, fragPath, VK_SHADER_STAGE_FRAGMENT_BIT};
 
-    Pipeline(const Pipeline &) = delete;
-    Pipeline &operator=(const Pipeline &) = delete;
-
-    VkPipeline graphicsPipeline{};
-    PipelineConfigInfo &configInfo;
-    Pipeline(
-        const std::string &vertPath,
-        const std::string &fragPath,
-        PipelineConfigInfo &_configInfo) : configInfo(_configInfo)
-    {
-        Shader vertShader{configInfo.swapChain.getDevice(), vertPath, VK_SHADER_STAGE_VERTEX_BIT};
-        Shader fragShader{configInfo.swapChain.getDevice(), fragPath, VK_SHADER_STAGE_FRAGMENT_BIT};
-
-        VkPipelineShaderStageCreateInfo shaderStages[2] = {
+        shaderStages = {
             vertShader.stageCreateInfo,
             fragShader.stageCreateInfo};
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = 2;
-        pipelineInfo.pStages = shaderStages;
-        pipelineInfo.pVertexInputState = &configInfo.vertexInputInfo;
-        pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
-        pipelineInfo.pViewportState = &configInfo.viewportInfo;
-        pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo;
-        pipelineInfo.pMultisampleState = &configInfo.multisampleInfo;
-        pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
-        pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
+        pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+        pipelineInfo.pStages = shaderStages.data();
+        pipelineInfo.pVertexInputState = &vertexInputInfo;
+        pipelineInfo.pInputAssemblyState = &inputAssemblyInfo;
+        pipelineInfo.pViewportState = &viewportInfo;
+        pipelineInfo.pRasterizationState = &rasterizationInfo;
+        pipelineInfo.pMultisampleState = &multisampleInfo;
+        pipelineInfo.pColorBlendState = &colorBlendInfo;
+        pipelineInfo.pDepthStencilState = &depthStencilInfo;
         pipelineInfo.pDynamicState = nullptr;
 
-        pipelineInfo.layout = configInfo.pipelineLayout;
-        pipelineInfo.renderPass = configInfo.renderPass;
-        pipelineInfo.subpass = configInfo.subpass;
+        pipelineInfo.layout = pipelineLayout;
+        pipelineInfo.renderPass = renderPass;
+        pipelineInfo.subpass = subpass;
 
         pipelineInfo.basePipelineIndex = -1;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        if (vkCreateGraphicsPipelines(configInfo.swapChain.getDevice().device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+        if (vkCreateGraphicsPipelines(swapChain.device.logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
         {
             ERROR("failed to create graphics pipeline");
         }
@@ -171,6 +164,7 @@ struct Pipeline
 
     ~Pipeline()
     {
-        vkDestroyPipeline(configInfo.swapChain.getDevice().device(), graphicsPipeline, nullptr);
+        vkDestroyPipeline(swapChain.device.logical, graphicsPipeline, nullptr);
+        vkDestroyPipelineLayout(swapChain.device.logical, pipelineLayout, nullptr);
     }
 };

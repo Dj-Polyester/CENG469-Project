@@ -11,7 +11,9 @@ struct Window
     const std::string name;
 
     Window(const Window &) = delete;
-    Window &operator=(const Window &) = delete;
+    void operator=(const Window &) = delete;
+    Window(Window &&) = delete;
+    Window &operator=(Window &&) = delete;
 
     Window(uint32_t w, uint32_t h, const std::string &_name)
         : width(w),
