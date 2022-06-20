@@ -45,12 +45,13 @@ struct Model
     Model(Model &&) = delete;
     Model &operator=(Model &&) = delete;
 
-    Model(Device &device, const std::vector<Vertex> vertices) : device(device)
+    Model(Device &device, const std::vector<Vertex> &vertices) : device(device)
     {
         // create vertex buffers
         vertexCount = static_cast<uint32_t>(vertices.size());
         assert(vertexCount >= 3 && "Vertex count must be at least 3");
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
+
         device.createBuffer(
             bufferSize,
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -73,6 +74,7 @@ struct Model
     {
         vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
     }
+
     ~Model()
     {
         vkDestroyBuffer(device.logical, vertexBuffer, nullptr);

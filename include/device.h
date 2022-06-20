@@ -24,6 +24,20 @@ struct QueueFamilyIndices
 
 struct Device
 {
+  const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+  Instance instance;
+  QueueFamilyIndices queueFamilyIndices;
+
+  VkPhysicalDevice physical = VK_NULL_HANDLE;
+  Window &window;
+  VkCommandPool commandPool;
+
+  VkDevice logical;
+  VkSurfaceKHR surface;
+  VkQueue graphicsQueue;
+  VkQueue presentQueue;
+
   Device(Window &window);
   ~Device();
 
@@ -68,27 +82,7 @@ struct Device
 
   // helper functions
   bool isDeviceSuitable(VkPhysicalDevice device);
-  std::vector<const char *> getRequiredExtensions();
-  bool checkValidationLayerSupport();
   void findQueueFamilies(VkPhysicalDevice device);
-  void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-  void hasGflwRequiredInstanceExtensions();
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-
-  QueueFamilyIndices queueFamilyIndices;
-
-  VkInstance instance;
-  VkDebugUtilsMessengerEXT debugMessenger;
-  VkPhysicalDevice physical = VK_NULL_HANDLE;
-  Window &window;
-  VkCommandPool commandPool;
-
-  VkDevice logical;
-  VkSurfaceKHR surface;
-  VkQueue graphicsQueue;
-  VkQueue presentQueue;
-
-  const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-  const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 };

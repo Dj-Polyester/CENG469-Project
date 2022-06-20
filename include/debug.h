@@ -12,6 +12,7 @@
 #endif
 
 #ifdef VALIDATION_ENABLED
+const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
 #define DEBUG(var) PRINT(std::cerr, BLUE, var)
 #define DEBUG2(label, var) PRINT2(std::cerr, BLUE, label, var)
@@ -32,6 +33,29 @@
 #define CERROR(var) PRINT(std::cerr, RED, var)
 #define CERROR2(label, var) PRINT2(std::cerr, RED, label, var)
 #define CERROR3(var) CERROR2(#var, var)
+
+struct DebugMessenger
+{
+    VkDebugUtilsMessengerEXT vkObject;
+    VkInstance &vkInstanceObject;
+    DebugMessenger(VkInstance &vkinstance);
+    ~DebugMessenger();
+    static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+        void *pUserData);
+    VkResult CreateDebugUtilsMessengerEXT(
+        VkInstance &instance,
+        const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+        const VkAllocationCallbacks *pAllocator,
+        VkDebugUtilsMessengerEXT *pDebugMessenger);
+    void DestroyDebugUtilsMessengerEXT(
+        VkInstance &instance,
+        VkDebugUtilsMessengerEXT debugMessenger,
+        const VkAllocationCallbacks *pAllocator);
+};
 
 #else
 

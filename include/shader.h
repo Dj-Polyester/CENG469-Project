@@ -27,7 +27,7 @@ struct Shader
         }
         size = static_cast<size_t>(file.tellg());
         file.seekg(0);
-        code.reserve(size);
+        code.resize(size);
         file.read(code.data(), size);
         file.close();
 

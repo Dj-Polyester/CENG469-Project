@@ -1,6 +1,6 @@
 #pragma once
 
-#include "debug.h"
+#include "instance.h"
 
 struct Window
 {
