@@ -89,8 +89,7 @@ bool Instance::checkValidationLayerSupport()
 
 void Instance::getRequiredExtensions()
 {
-    const char **glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&requiredExtensionCount);
+    const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&requiredExtensionCount);
 
     requiredExtensions.insert(requiredExtensions.begin(), glfwExtensions, glfwExtensions + requiredExtensionCount);
 #ifdef VALIDATION_ENABLED

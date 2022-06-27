@@ -5,37 +5,42 @@
 struct Window
 {
     // window vars
+    Instance &instance;
     GLFWwindow *window;
     uint32_t width, height;
     VkSurfaceKHR surface;
-    const std::string name;
+
+    bool frameBufferResizedFlag = false;
 
     Window(const Window &) = delete;
     void operator=(const Window &) = delete;
     Window(Window &&) = delete;
     Window &operator=(Window &&) = delete;
 
-    Window(uint32_t w, uint32_t h, const std::string &_name)
+    Window(uint32_t w, uint32_t h, Instance &instance_)
         : width(w),
           height(h),
-          name(_name)
+          instance(instance_)
     {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-        window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
-    }
-    VkExtent2D getExtent() { return {width, height}; }
-    void createWindowSurface(VkInstance &instance, VkSurfaceKHR &surface)
-    {
-        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+        window = glfwCreateWindow(width, height, instance.name.c_str(), nullptr, nullptr);
+        VkResult result = glfwCreateWindowSurface(instance.vkobject, window, nullptr, &surface);
+        if (result != VK_SUCCESS)
         {
             ERROR("failed to create window surface");
         }
     }
+    VkExtent2D extent() { return {width, height}; }
     ~Window()
     {
+        vkDestroySurfaceKHR(instance.vkobject, surface, nullptr);
         glfwDestroyWindow(window);
         glfwTerminate();
+    }
+    static void frameBufferResized(GLFWwindow *window, int width, int height)
+    {
+        glfwGetWindowUserPointer(window);
     }
 };

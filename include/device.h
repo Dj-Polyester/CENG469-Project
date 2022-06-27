@@ -24,9 +24,8 @@ struct QueueFamilyIndices
 
 struct Device
 {
-  const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  const std::vector<const char *> requiredExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-  Instance instance;
   QueueFamilyIndices queueFamilyIndices;
 
   VkPhysicalDevice physical = VK_NULL_HANDLE;
@@ -34,7 +33,6 @@ struct Device
   VkCommandPool commandPool;
 
   VkDevice logical;
-  VkSurfaceKHR surface;
   VkQueue graphicsQueue;
   VkQueue presentQueue;
 

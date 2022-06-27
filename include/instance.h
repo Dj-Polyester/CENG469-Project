@@ -5,7 +5,7 @@
 struct Instance
 {
     std::string name;
-    uint32_t requiredExtensionCount;
+    uint32_t requiredExtensionCount = 31;
     std::vector<const char *> requiredExtensions;
     uint32_t availableExtensionCount;
     std::vector<VkExtensionProperties> availableExtensions;
@@ -15,6 +15,11 @@ struct Instance
     DebugMessenger *debugMessenger;
 #endif
     VkInstance vkobject;
+
+    Instance(const Instance &) = delete;
+    void operator=(const Instance &) = delete;
+    Instance(Instance &&) = delete;
+    Instance &operator=(Instance &&) = delete;
 
     Instance(const std::string &name);
     ~Instance();

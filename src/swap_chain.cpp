@@ -145,7 +145,7 @@ void SwapChain::createSwapChain()
 
   VkSwapchainCreateInfoKHR createInfo = {};
   createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-  createInfo.surface = device.surface;
+  createInfo.surface = device.window.surface;
 
   createInfo.minImageCount = imageCount;
   createInfo.imageFormat = surfaceFormat.format;
@@ -390,7 +390,7 @@ VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(
 {
   for (const auto &availableFormat : availableFormats)
   {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
         availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
     {
       return availableFormat;

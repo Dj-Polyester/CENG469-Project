@@ -38,6 +38,12 @@ struct DebugMessenger
 {
     VkDebugUtilsMessengerEXT vkObject;
     VkInstance &vkInstanceObject;
+
+    DebugMessenger(const DebugMessenger &) = delete;
+    void operator=(const DebugMessenger &) = delete;
+    DebugMessenger(DebugMessenger &&) = delete;
+    DebugMessenger &operator=(DebugMessenger &&) = delete;
+
     DebugMessenger(VkInstance &vkinstance);
     ~DebugMessenger();
     static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);

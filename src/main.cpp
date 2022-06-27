@@ -2,6 +2,8 @@
 
 int main(int argc, char const *argv[])
 {
+    glfwInit();
+
     try
     {
         App app{};
@@ -12,6 +14,7 @@ int main(int argc, char const *argv[])
         std::cerr << e.what() << '\n';
         return EXIT_FAILURE;
     }
+    glfwTerminate();
 
     return EXIT_SUCCESS;
 }
